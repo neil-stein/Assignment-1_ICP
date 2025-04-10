@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-04-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Load necessary libraries
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+library(lubridate)
+
+# Load data
+gmst_df <- read.csv("/Users/neilstein/Documents/Academic/Spring 25/International Climate Policy/Assignment 1_ICP/indiv1_gmst_monthly_fixed.csv")
+
+
+# Function to extract year and month
+extract_year_month <- function(year_month) {
+  year <- as.integer(substr(year_month, 1, 4))
+  month <- as.integer(substr(year_month, 5, 6))
+  return(list(year = year, month = month))
+}
+
+# Apply the function to create new columns
+year_month_list <- lapply(gmst_df$Year, extract_year_month) # lapply returns a list
+gmst_df$Year_new <- sapply(year_month_list, `[[`, "year") # Extract year from list
+gmst_df$Month <- sapply(year_month_list, `[[`, "month") # Extract month from list
+
+
+# Convert the 'Year_new' column to datetime
+gmst_df <- gmst_df %>%
+  mutate(Year_new = ymd(paste0(Year_new, "-01-01")))
+
+# Plotting the data correctly
+p <- ggplot(gmst_df, aes(x = Year_new, y = Anomaly)) +
+  geom_point(size = 1, color = "lightgrey") +
+  geom_line(linewidth = 0.5, color = "lightgrey") +
+  labs(
+    title = "Time Series of Average Global Temperature Anomaly",
+    x = "Year",
+    y = "Average Global Temperature Anomaly (°C)"
+  ) +
+  theme_bw()
+
+ggsave("temperature_anomaly_time_series.png", plot = p, width = 12, height = 8, units = "in")
+
+# Try different approaches to display the plot
+print(p)
+plot(p)
+print(p, newpage = TRUE)
+```
+
